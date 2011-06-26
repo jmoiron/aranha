@@ -35,6 +35,8 @@ setup(
     test_suite="tests",
     install_requires=[
       # -*- Extra requirements: -*-
+      'gevent',
+      'httplib2',
     ],
     entry_points="""
     # -*- Entry points: -*-
