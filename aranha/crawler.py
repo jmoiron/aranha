@@ -3,7 +3,6 @@
 
 """Simple async crawler/callback queue based on gevent."""
 
-import data
 import traceback
 import logging
 import httplib2
@@ -22,15 +21,15 @@ class Crawler(object):
     there are no more urls in the queue."""
     seen_jobs = set()
 
-    def __init__(self, handler, timeout=2, worker_count=4, pipeline_size=100):
+    def __init__(self, handler, timeout=2, concurrency=4, pipeline_size=100):
         self.handler = handler
         self.handler.crawler = self
         self.timeout = timeout
-        self.count = worker_count
+        self.count = concurrency
         self.inq = queue.Queue(0)
         self.outq = queue.Queue(pipeline_size)
         self.jobq = queue.Queue()
-        self.pool = pool.Pool(worker_count)
+        self.pool = pool.Pool(concurrency)
         self.worker_finished = event.Event()
 
         for job in getattr(self.handler, 'jobs', []):
@@ -43,9 +42,6 @@ class Crawler(object):
         adds jobs to the pool and waits for the scheduler and pipeline to
         finish.  The scheduler itself shuts down the pool and waits on that,
         so it's not required to watch the pool."""
-        # add the handler's jobs first
-        for url in self.handler.urls:
-            self.add_job(url)
         # start the scheduler & the pipeline
         self.scheduler_greenlet = gevent.spawn(self.scheduler)
         self.pipeline_greenlet = gevent.spawn(self.pipeline)
@@ -108,7 +104,12 @@ class Crawler(object):
         #   http://code.google.com/p/httplib2/issues/detail?id=5
         h = httplib2.Http(self.cache)
         try:
-            job.response, job.data = h.request(job.url, method=job.method, headers=job.headers)
+            if job.body or job.method in ('PUT', 'POST'):
+                job.response, job.data = h.request(job.url, method=job.method,
+                    headers=job.headers, body=job.body)
+            else:
+                job.response, job.data = h.request(job.url, method=job.method,
+                    headers=job.headers)
             (job.handler or self.handler).preprocess(job)
         except Exception, e:
             logger.error("Preprocessing error:\n%s" % traceback.format_exc())

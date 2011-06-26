@@ -16,12 +16,13 @@ class Job(object):
         'Cache-Control': 'max-age=0',
     }
     def __init__(self, url, headers=None, meta=None, method='GET', handler=None,
-            random=False):
+            body=None, randomua=False):
         self.__url = url
         self.method = method
         self.headers = dict(self.default_headers)
         self.headers.update(headers or {})
-        self.headers['User-Agent'] = utils.ua(random)
+        self.headers['User-Agent'] = utils.ua(randomua)
+        self.body = body
         self.meta = meta
         self.handler = handler
 

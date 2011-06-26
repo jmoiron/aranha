@@ -19,6 +19,7 @@ class SimpleHandler(BaseHandler):
     def __init__(self, preprocess=None, postprocess=None):
         self.pre = preprocess
         self.post = postprocess
+        super(SimpleHandler, self).__init__()
 
     def preprocess(self, job):
         if self.pre:

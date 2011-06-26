@@ -27,4 +27,9 @@ def ua(random=False):
         return random.choice(uas)
     return useragent
 
+def queueitems(queue):
+    l = []
+    while not queue.empty():
+        l.append(queue.get_nowait())
+    return l
 
