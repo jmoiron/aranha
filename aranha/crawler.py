@@ -3,13 +3,13 @@
 
 """Simple async crawler/callback queue based on gevent."""
 
-import traceback
-import logging
-import httplib2
-
 import gevent
 from gevent import monkey, queue, event, pool
 monkey.patch_all()
+
+import traceback
+import logging
+import httplib2
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +100,7 @@ class Crawler(object):
         is its opportunity to add urls to the job queue.  Heavy processing
         should be done via the pipeline in postprocess."""
         logger.debug("starting: %r" % job)
+        job.crawler = self
         # you need to create a new Http instance per greenlet, see ticket:
         #   http://code.google.com/p/httplib2/issues/detail?id=5
         h = httplib2.Http(self.cache)

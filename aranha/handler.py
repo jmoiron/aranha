@@ -14,18 +14,15 @@ class BaseHandler(object):
 
 class SimpleHandler(BaseHandler):
     """A simple handler that takes pre and post processing methods as
-    arguments.  The crawler will be passed to these callbacks as a crawler
-    kwarg."""
+    arguments.  The job object gets the current crawler added onto it."""
     def __init__(self, preprocess=None, postprocess=None):
         self.pre = preprocess
         self.post = postprocess
         super(SimpleHandler, self).__init__()
 
     def preprocess(self, job):
-        if self.pre:
-            self.pre(job, crawler=self.crawler)
+        if self.pre: self.pre(job)
 
     def postprocess(self, job):
-        if self.post:
-            self.post(job, crawler=self.crawler)
+        if self.post: self.post(job)
 

@@ -28,12 +28,19 @@ def starturls(urls, callback, concurrency=4, timeout=2):
     """Fetch a number of urls.  These may be string urls or jobs."""
     handler = SimpleHandler(preprocess=callback)
     jobs = [Job(url, handler=handler) for url in urls]
-    fetchjobs(jobs, concurrency, timeout, handler=handler)
+    startjobs(jobs, concurrency, timeout, handler=handler)
 
 def startjobs(jobs, concurrency=4, timeout=2, handler=None):
     """Fetch a number of jobs.  These jobs should have handlers set, as the
-    BaseHandler with noop callbacks will be used."""
-    handler = handler or BaseHandler()
+    BaseHandler with noop callbacks will be used.  If a handler is provided
+    as kwarg, and it is not a BaseHandler, a SimpleHandler will be created
+    for it."""
+    if handler and isinstance(handler, BaseHandler):
+        handler = handler
+    elif handler:
+        handler = SimpleHandler(preprocess=handler)
+    else:
+        handler = BaseHandler()
     handler.jobs = jobs
     crawler = Crawler(handler, concurrency=concurrency, timeout=timeout)
     crawler.start()
@@ -43,7 +50,7 @@ def geturls(urls, concurrency=4, timeout=5):
     asynchronously and returns the data within."""
     from gevent import queue
     q = queue.Queue()
-    def callback(job, crawler):
+    def callback(job):
         q.put({'url': job.url, 'document': job.data})
     handler = SimpleHandler(preprocess=callback)
     jobs = [Job(url, handler=handler) for url in urls]
